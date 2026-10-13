@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desať prstov – písanie všetkými desiatimi</title>
+<meta name="description" content="Bezplatný trenažér písania všetkými desiatimi prstami na slovenskej klávesnici. Lekcie, opakovanie chýb, štatistiky a hry.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230b0b0b'/><text x='16' y='22' font-family='monospace' font-weight='700' font-size='15' fill='%23ff4d00' text-anchor='middle'>10</text></svg>">
+<script>
+  // apply saved theme before paint (no flash)
+  try { const t = JSON.parse(localStorage.getItem('desatprstov.v1') || '{}').settings?.theme; if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+
+<header class="top">
+  <button id="logo" class="logo" aria-label="Domov"><span class="logo-mark">10</span><span class="logo-word">Desať prstov</span></button>
+  <nav id="nav" aria-label="Hlavná navigácia">
+    <button data-view="home">Domov</button>
+    <button data-view="lessons">Lekcie</button>
+    <button data-view="words">Slová</button>
+    <button data-view="review">Opakovanie</button>
+    <button data-view="games">Hry</button>
+    <button data-view="stats">Štatistiky</button>
+  </nav>
+  <div class="top-right">
+    <button id="sound" class="icon-btn" aria-label="Zvuk"></button>
+    <button id="theme" class="icon-btn" aria-label="Svetlý / tmavý režim"></button>
+    <button id="player" class="player" aria-label="Zmeniť meno"></button>
+  </div>
+</header>
+
+<main>
+  <!-- HOME -->
+  <section id="view-home" class="view" hidden>
+    <div class="hero">
+      <p class="label" id="home-greet">Ahoj</p>
+      <h1>Píš rýchlo.<br>Nepozeraj<br>na klávesy<span class="dot">.</span></h1>
+      <div class="hero-side">
+        <p class="lead">Lekcie podľa učebnice, opakovanie slov, v ktorých robíš chyby, a hry, v ktorých môžeš poraziť spolužiakov.</p>
+        <button id="home-next-btn" class="cta big"><i data-icon="play"></i> Začať písať</button>
+        <p class="small muted" id="home-next"></p>
+      </div>
+    </div>
+    <div class="figures" id="home-tiles"></div>
+    <div class="cols">
+      <div class="block">
+        <p class="label">01 — Na zopakovanie</p>
+        <div id="home-review"></div>
+      </div>
+      <div class="block">
+        <p class="label">02 — Súťaž so spolužiakmi</p>
+        <p>Zahraj si hru, pošli výzvu a uvidíš, kto píše najrýchlejšie.</p>
+        <button data-go="games">Hrať hry <i data-icon="arrow-right"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LESSONS -->
+  <section id="view-lessons" class="view" hidden>
+    <div class="page-head">
+      <p class="label">Kurz</p>
+      <h1>Lekcie</h1>
+      <p class="muted">Postupuj od prvej lekcie. Prsty drž na základnom rade <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> <kbd>F</kbd> – <kbd>J</kbd> <kbd>K</kbd> <kbd>L</kbd> <kbd>Ô</kbd>. Výstupky na F a J ti pomôžu nájsť pozíciu bez pozerania.</p>
+    </div>
+    <div id="lesson-grid" class="lesson-grid"></div>
+  </section>
+
+  <!-- WORDS -->
+  <section id="view-words" class="view" hidden>
+    <div class="page-head">
+      <p class="label">Precvičovanie</p>
+      <h1>Slová</h1>
+      <p class="muted">Iba skutočné slová – zložené z písmen, ktoré už poznáš do danej lekcie. Každé spustenie dá nové slová.</p>
+    </div>
+    <div class="lines-bar">
+      <div class="seg-wrap">
+        <span class="seg-label" id="lines-label">Počet riadkov</span>
+        <div class="seg" role="group" aria-labelledby="lines-label">
+          <button data-lines="1">1</button>
+          <button data-lines="3">3</button>
+          <button data-lines="5">5</button>
+          <button data-lines="10">10</button>
+        </div>
+      </div>
+      <label class="lines-custom">alebo <input type="number" id="lines-custom" min="1" max="50" aria-label="Vlastný počet riadkov"> riadkov</label>
+      <span class="small muted">1 riadok ≈ 60 znakov (asi 8–10 slov)</span>
+    </div>
+    <div id="words-grid" class="lesson-grid"></div>
+  </section>
+
+  <!-- REVIEW -->
+  <section id="view-review" class="view" hidden>
+    <div class="page-head">
+      <p class="label">Tréning</p>
+      <h1>Opakovanie</h1>
+      <p class="muted">Precvič si to, čo ti ide najhoršie, a slová z hodiny.</p>
+    </div>
+    <div class="cols">
+      <div class="block">
+        <p class="label">01 — Slová s chybou</p>
+        <p id="rev-missed-info"></p>
+        <button id="rev-missed" class="primary">Precvičiť</button>
+      </div>
+      <div class="block">
+        <p class="label">02 — Slabé klávesy</p>
+        <div id="rev-weak-info" class="chips"></div>
+        <button id="rev-weak" class="primary">Precvičiť</button>
+      </div>
+    </div>
+    <div class="block">
+      <p class="label">03 — Slová z hodiny / vlastný text</p>
+      <p class="muted">Vlož slová alebo text, ktoré ste písali na hodine – alebo ich načítaj z fotky. Zoznam si ulož a opakuj, koľkokrát chceš.</p>
+      <div class="ocr">
+        <button id="ocr-btn" class="primary"><i data-icon="camera"></i> Načítať z fotky</button>
+        <input type="file" id="ocr-file" accept="image/*" multiple hidden>
+        <div class="ocr-status" id="ocr-status" hidden><span id="ocr-msg"></span><div class="progress"><i id="ocr-bar"></i></div></div>
+      </div>
+      <div class="row">
+        <label class="field grow"><span>Uložené zoznamy</span><select id="saved-lists"></select></label>
+        <label class="field grow"><span>Názov</span><input id="list-name" placeholder="napr. Lekcia 5"></label>
+        <button id="save-list"><i data-icon="save"></i> Uložiť</button>
+        <button id="delete-list" class="ghost">Vymazať</button>
+      </div>
+      <label class="field"><span>Text</span><textarea id="custom-text" rows="6" placeholder="Sem vlož slová oddelené medzerou alebo novým riadkom…"></textarea></label>
+      <div class="row opts">
+        <label class="check"><input type="checkbox" id="opt-shuffle" checked> Zamiešať</label>
+        <label>Opakovať <input type="number" id="opt-repeat" min="1" max="20" value="2"> ×</label>
+        <label>Najviac <input type="number" id="opt-max" min="5" max="1000" value="80"> slov</label>
+        <button id="start-custom" class="cta"><i data-icon="play"></i> Písať</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- GAMES -->
+  <section id="view-games" class="view" hidden>
+    <div class="page-head">
+      <p class="label">Súťaž</p>
+      <h1>Hry</h1>
+      <p class="muted">Po hre klikni na <b>Skopírovať výzvu</b> a pošli odkaz spolužiakom – dostanú presne tie isté slová.</p>
+    </div>
+    <div id="game-cards" class="game-cards"></div>
+    <div id="game-stage" class="stage" hidden></div>
+    <p class="label section-label">Rebríčky na tomto počítači</p>
+    <div id="boards" class="boards"></div>
+  </section>
+
+  <!-- STATS -->
+  <section id="view-stats" class="view" hidden>
+    <div class="page-head">
+      <p class="label">Prehľad</p>
+      <h1>Štatistiky</h1>
+    </div>
+    <div class="figures" id="stat-cards"></div>
+    <div class="cols">
+      <div class="block"><p class="label">Rýchlosť — úhozy za minútu</p><div id="chart-speed" class="chart-box"></div></div>
+      <div class="block"><p class="label">Presnosť — %</p><div id="chart-acc" class="chart-box"></div></div>
+    </div>
+    <div class="block">
+      <p class="label">Mapa chýb — prejdi myšou na klávesu pre detail</p>
+      <div id="heat-kb" class="keyboard heatmap"></div>
+      <div class="heat-legend"><span>0 %</span><i></i><span>20 % a viac chýb</span></div>
+    </div>
+    <div class="cols three">
+      <div class="block"><p class="label">Najviac chýb</p><div id="weak-keys" class="chips"></div></div>
+      <div class="block"><p class="label">Najpomalšie klávesy</p><div id="slow-keys" class="chips"></div></div>
+      <div class="block"><p class="label">Chybné slová</p><div id="missed-words" class="chips"></div></div>
+    </div>
+    <div class="block">
+      <p class="label">História</p>
+      <div class="table-wrap">
+        <table id="history"><thead><tr><th>Kedy</th><th>Cvičenie</th><th class="num">Úhozy/min</th><th class="num">Slová/min</th><th class="num">Presnosť</th><th class="num">Chyby</th><th class="num">Čas</th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+    <div class="row">
+      <button id="export"><i data-icon="download"></i> Uložiť zálohu</button>
+      <button id="import"><i data-icon="upload"></i> Načítať zálohu</button>
+      <input type="file" id="import-file" accept=".json" hidden>
+      <button id="clear-stats" class="ghost danger">Vymazať štatistiky</button>
+    </div>
+  </section>
+
+  <!-- PRACTICE -->
+  <section id="view-practice" class="view" hidden>
+    <div class="bar">
+      <button id="back" class="ghost"><i data-icon="arrow-left"></i> Späť</button>
+      <strong id="ex-title"></strong>
+      <div class="seg-wrap">
+        <span class="seg-label" id="mode-label">Pri chybe</span>
+        <div class="seg" role="group" aria-labelledby="mode-label">
+          <button data-mode="stop" title="Musíš stlačiť správnu klávesu, kým pôjdeš ďalej.">Zastaviť</button>
+          <button data-mode="flow" title="Píšeš ďalej, chyba ostane označená. Backspace opraví.">Pokračovať</button>
+        </div>
+      </div>
+      <button id="restart" class="ghost" title="Esc"><i data-icon="restart"></i> Znova <kbd>Esc</kbd></button>
+    </div>
+    <div class="live">
+      <div><span>Úhozy/min</span><b id="live-cpm">0</b></div>
+      <div><span>Presnosť</span><b><span id="live-acc">100</span>%</b></div>
+      <div><span>Chyby</span><b id="live-err">0</b></div>
+      <div><span>Čas</span><b id="live-time">0 s</b></div>
+    </div>
+    <div class="progress"><i id="progress"></i></div>
+    <div id="layout-warn" class="warn" hidden><i data-icon="alert"></i><span>Vyzerá to, že máš zapnutú anglickú klávesnicu. Prepni na <b>slovenskú (QWERTZ)</b> – napr. <kbd>Win</kbd> + <kbd>medzerník</kbd> alebo <kbd>Alt</kbd> + <kbd>Shift</kbd>.</span></div>
+    <div class="practice-wrap">
+      <div id="practice-area">
+        <div id="text" class="text"></div>
+        <p id="hint" class="hint"></p>
+        <div id="keyboard" class="keyboard"></div>
+      </div>
+      <div id="result" class="result" hidden></div>
+    </div>
+  </section>
+</main>
+
+<dialog id="name-dialog">
+  <form id="name-form">
+    <p class="label">Hráč</p>
+    <h2>Ako sa voláš?</h2>
+    <p class="muted">Meno sa zobrazí v rebríčkoch a vo výzvach pre spolužiakov.</p>
+    <label class="field"><span>Meno alebo prezývka</span><input id="name-input" maxlength="20" autocomplete="off"></label>
+    <div class="row end"><button class="primary" type="submit">Uložiť</button></div>
+  </form>
+</dialog>
+
+<script src="js/icons.js"></script>
+<script src="js/words.js"></script>
+<script src="js/data.js"></script>
+<script src="js/store.js"></script>
+<script src="js/keyboard.js"></script>
+<script src="js/typing.js"></script>
+<script src="js/exercises.js"></script>
+<script src="js/games.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/ocr.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
